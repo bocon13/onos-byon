@@ -1,0 +1,25 @@
+#!/bin/bash
+# -----------------------------------------------------------------------------
+# Pushes the BYON app bits to the remote ONOS cell machines and updates them.
+# -----------------------------------------------------------------------------
+
+[ ! -d "$ONOS_ROOT" ] && echo "ONOS_ROOT is not defined" >&2 && exit 1
+. $ONOS_ROOT/tools/build/envDefaults
+
+nodes=$(env | sort | egrep "^OC[0-9]+" | cut -d= -f2)
+bundles="byon-app byon-cli"
+
+bp="mvn:org.onos.byon"
+bv="1.0-SNAPSHOT"
+
+for node in $nodes; do
+    echo "Pushing byon to $node"
+    ssh $ONOS_USER@$node "
+        mkdir -p .m2/repository/org/onos
+        rm -rf .m2/repository/org/onos/byon
+    "
+    scp -r ~/.m2/repository/org/onos/byon $ONOS_USER@$node:.m2/repository/org/onos &>/dev/null
+    for bundle in $bundles; do ssh $ONOS_USER@$node "$ONOS_INSTALL_DIR/bin/onos \"bundle:uninstall $bundle\"" &>/dev/null; done
+    for bundle in $bundles; do ssh $ONOS_USER@$node "$ONOS_INSTALL_DIR/bin/onos \"bundle:install $bp/$bundle/$bv\"" &>/dev/null; done
+    for bundle in $bundles; do ssh $ONOS_USER@$node "$ONOS_INSTALL_DIR/bin/onos \"bundle:start $bundle\"" &>/dev/null; done
+done
