@@ -15,6 +15,7 @@
  */
 package org.onos.byon;
 
+import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -47,7 +48,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Skeletal ONOS application component.
  */
 @Component(immediate = true)
-public class NetworkManager {
+@Service
+public class NetworkManager implements NetworkService {
 
     private static Logger log = LoggerFactory.getLogger(NetworkManager.class);
 
@@ -63,5 +65,33 @@ public class NetworkManager {
         log.info("Stopped");
     }
 
+    @Override
+    public void createNetwork(String network) {
+    }
+
+    @Override
+    public void deleteNetwork(String network) {
+
+    }
+
+    @Override
+    public Set<String> getNetworks() {
+        return Sets.newHashSet("test");
+    }
+
+    @Override
+    public void addHost(String network, HostId hostId) {
+
+    }
+
+    @Override
+    public void removeHost(String network, HostId hostId) {
+
+    }
+
+    @Override
+    public Set<HostId> getHosts(String network) {
+        return Collections.emptySet();
+    }
 
 }
