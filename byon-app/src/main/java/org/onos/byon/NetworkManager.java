@@ -64,15 +64,26 @@ public class NetworkManager implements NetworkService {
 
     private ApplicationId appId;
 
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected EventDeliveryService eventDispatcher;
+
+    private final AbstractListenerRegistry<NetworkEvent, NetworkListener>
+            listenerRegistry = new AbstractListenerRegistry<>();
+
+    private final NetworkStoreDelegate delegate = new InternalStoreDelegate();
+
     @Activate
     protected void activate() {
         appId = coreService.registerApplication("org.onos.byon");
+        eventDispatcher.addSink(NetworkEvent.class, listenerRegistry);
+        store.setDelegate(delegate);
         log.info("Started");
     }
 
     @Deactivate
     protected void deactivate() {
-
+        eventDispatcher.removeSink(NetworkEvent.class);
+        store.unsetDelegate(delegate);
         log.info("Stopped");
     }
 
@@ -137,6 +148,23 @@ public class NetworkManager implements NetworkService {
         IntentOperations.Builder builder = IntentOperations.builder(appId);
         intents.forEach(intent -> builder.addWithdrawOperation(intent.id()));
         intentService.execute(builder.build());
+    }
+
+    @Override
+    public void addListener(NetworkListener listener) {
+        listenerRegistry.addListener(listener);
+    }
+
+    @Override
+    public void removeListener(NetworkListener listener) {
+        listenerRegistry.removeListener(listener);
+    }
+
+    private class InternalStoreDelegate implements NetworkStoreDelegate {
+        @Override
+        public void notify(NetworkEvent event) {
+            eventDispatcher.post(event);
+        }
     }
 
 }

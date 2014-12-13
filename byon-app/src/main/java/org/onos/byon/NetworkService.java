@@ -56,4 +56,17 @@ public interface NetworkService {
      */
     Set<HostId> getHosts(String network);
 
+    /**
+     * Register a listener for network events.
+     *
+     * @param listener listener
+     */
+    void addListener(NetworkListener listener);
+
+    /**
+     * Unregister a listener for network events.
+     *
+     * @param listener listener
+     */
+    void removeListener(NetworkListener listener);
 }
