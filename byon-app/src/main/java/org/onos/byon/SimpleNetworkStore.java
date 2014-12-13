@@ -44,7 +44,7 @@ import static org.onos.byon.NetworkEvent.Type.NETWORK_UPDATED;
 /**
  * Trivial in-memory network store.
  */
-@Component(immediate = true, enabled = true)
+@Component(immediate = false, enabled = false)
 @Service
 public class SimpleNetworkStore
         extends AbstractStore<NetworkEvent, NetworkStoreDelegate>
