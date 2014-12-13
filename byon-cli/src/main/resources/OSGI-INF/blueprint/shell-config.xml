@@ -30,6 +30,21 @@
                 <null/>
             </completers>
         </command>
+        <command>
+            <action class="org.onos.byon.cli.RemoveHostCommand"/>
+            <completers>
+                <ref component-id="networkCompleter"/>
+                <ref component-id="hostIdCompleter"/>
+                <null/>
+            </completers>
+        </command>
+        <command>
+            <action class="org.onos.byon.cli.RemoveNetwork"/>
+            <completers>
+                <ref component-id="networkCompleter"/>
+                <null/>
+            </completers>
+        </command>
     </command-bundle>
 
     <bean id="hostIdCompleter" class="org.onosproject.cli.net.HostIdCompleter"/>
