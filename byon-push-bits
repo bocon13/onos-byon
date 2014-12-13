@@ -7,7 +7,7 @@
 . $ONOS_ROOT/tools/build/envDefaults
 
 nodes=$(env | sort | egrep "^OC[0-9]+" | cut -d= -f2)
-bundles="byon-app byon-cli"
+bundles="byon-app byon-cli byon-monitor"
 
 bp="mvn:org.onos.byon"
 bv="1.0-SNAPSHOT"
