@@ -50,6 +50,7 @@ def run( controllers ):
     ctrl_count = 0
     for controllerIP in controllers:
         net.addController( 'c%d' % ctrl_count, RemoteController, ip=controllerIP )
+        ctrl_count += 1
     net.start()
     CLI( net )
     net.stop()
