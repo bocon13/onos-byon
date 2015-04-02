@@ -15,7 +15,6 @@
  */
 package org.onos.byon;
 
-import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -29,18 +28,13 @@ import org.onosproject.event.EventDeliveryService;
 import org.onosproject.net.HostId;
 import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
-import org.onosproject.net.intent.IntentEvent;
-import org.onosproject.net.intent.IntentListener;
-import org.onosproject.net.intent.IntentOperation;
-import org.onosproject.net.intent.IntentOperations;
 import org.onosproject.net.intent.IntentService;
-import org.onosproject.net.intent.IntentStoreDelegate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -131,23 +125,19 @@ public class NetworkManager implements NetworkService {
         if (existing.isEmpty()) {
             return Collections.emptySet();
         }
-        IntentOperations.Builder builder = IntentOperations.builder(appId);
+        Set<Intent> submitted = new HashSet<>();
         existing.forEach(dst -> {
             if (!src.equals(dst)) {
-                builder.addSubmitOperation(new HostToHostIntent(appId, src, dst));
+                Intent intent = new HostToHostIntent(appId, src, dst);
+                submitted.add(intent);
+                intentService.submit(intent);
             }
         });
-        IntentOperations ops = builder.build();
-        intentService.execute(ops);
-
-        return ops.operations().stream().map(IntentOperation::intent)
-                .collect(Collectors.toSet());
+        return submitted;
     }
 
     private void removeFromMesh(Set<Intent> intents) {
-        IntentOperations.Builder builder = IntentOperations.builder(appId);
-        intents.forEach(intent -> builder.addWithdrawOperation(intent.id()));
-        intentService.execute(builder.build());
+        intents.forEach(i -> intentService.withdraw(i));
     }
 
     @Override
