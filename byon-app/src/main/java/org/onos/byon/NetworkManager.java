@@ -30,10 +30,8 @@ import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
 import org.onosproject.net.intent.IntentEvent;
 import org.onosproject.net.intent.IntentListener;
-import org.onosproject.net.intent.IntentOperation;
-import org.onosproject.net.intent.IntentOperations;
 import org.onosproject.net.intent.IntentService;
-import org.onosproject.net.intent.IntentStoreDelegate;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
