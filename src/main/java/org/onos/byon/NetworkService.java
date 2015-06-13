@@ -78,6 +78,7 @@ public interface NetworkService {
      * @param listener listener
      */
     //TODO Lab 6: Add addListener to the interface (uncomment the line)
+    void addListener(NetworkListener listener);
 
     /**
      * Unregister a listener for network events.
@@ -85,4 +86,5 @@ public interface NetworkService {
      * @param listener listener
      */
     //TODO Lab 6: Add removeListener to the interface (uncomment the line)
+    void removeListener(NetworkListener listener);
 }

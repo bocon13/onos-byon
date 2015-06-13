@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.event.ListenerRegistry;
 import org.onosproject.net.HostId;
@@ -48,7 +49,7 @@ import static java.lang.String.format;
  */
 @Component(immediate = true)
 @Service
-public class NetworkManager implements NetworkService {
+public class NetworkManager extends AbstractListenerManager<NetworkEvent, NetworkListener> implements NetworkService {
 
     private static Logger log = LoggerFactory.getLogger(NetworkManager.class);
 
@@ -71,24 +72,11 @@ public class NetworkManager implements NetworkService {
 
 
     /*
-     * TODO Lab 6: Get a reference to the event delivery service
-     *
-     * All you need to do is uncomment the following two lines.
-     */
-    //@Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    //protected EventDeliveryService eventDispatcher;
-
-    /*
-     * TODO Lab 6: Construct a ListenerRegistry<NetworkEvent, NetworkListener>
-     *
-     * This will be used to keep track of external listeners.
-     */
-
-    /*
      * TODO Lab 6: Instantiate a NetworkStoreDelegate
      *
      * You will first need to implement the class (at the bottom of the file).
      */
+    private final NetworkStoreDelegate delegate = new InternalStoreDelegate();
 
     protected ApplicationId appId;
 
@@ -101,6 +89,8 @@ public class NetworkManager implements NetworkService {
          * 1. Add the listener registry to the event dispatcher using eventDispatcher.addSink()
          * 2. Set the delegate in the store
          */
+        eventDispatcher.addSink(NetworkEvent.class, listenerRegistry);
+        store.setDelegate(delegate);
         log.info("Started");
     }
 
@@ -112,6 +102,8 @@ public class NetworkManager implements NetworkService {
          * 1. Remove the event class from the event dispatcher using eventDispatcher.removeSink()
          * 2. Unset the delegate from the store
          */
+        eventDispatcher.removeSink(NetworkEvent.class);
+        store.unsetDelegate(delegate);
         log.info("Stopped");
     }
 
@@ -276,10 +268,17 @@ public class NetworkManager implements NetworkService {
         return fields.length > 1 && fields[1].contains(hostId.toString());
     }
 
+
     /*
      * TODO Lab 6: Implement an InternalStoreDelegate class
      *
      * The class should implement the NetworkStoreDelegate interface and
      * its notify method.
      */
+    private class InternalStoreDelegate implements NetworkStoreDelegate {
+        @Override
+        public void notify(NetworkEvent event) {
+            post(event);
+        }
+    }
 }
