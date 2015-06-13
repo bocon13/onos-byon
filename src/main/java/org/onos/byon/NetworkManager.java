@@ -66,8 +66,8 @@ public class NetworkManager implements NetworkService {
      *
      * All you need to do is uncomment the following two lines.
      */
-    //@Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    //protected IntentService intentService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected IntentService intentService;
 
 
     /*
@@ -156,7 +156,9 @@ public class NetworkManager implements NetworkService {
          *     You only need to add the intents if this is the first time that
          *     the host is added. (Check the store's return value)
          */
-        store.addHost(network, hostId);
+        if (store.addHost(network, hostId)) {
+            addIntents(network, hostId, store.getHosts(network));
+        }
     }
 
     @Override
@@ -196,6 +198,17 @@ public class NetworkManager implements NetworkService {
          * 2. Generate the intent key using generateKey(), so they can be removed later
          * 3. Submit the intents using intentService.submit()
          */
+        hostsInNet.forEach(dst -> {
+            if (!src.equals(dst)) {
+                Intent intent = HostToHostIntent.builder()
+                        .appId(appId)
+                        .key(generateKey(network, src, dst))
+                        .one(src)
+                        .two(dst)
+                        .build();
+                intentService.submit(intent);
+            }
+        });
     }
 
     /**
