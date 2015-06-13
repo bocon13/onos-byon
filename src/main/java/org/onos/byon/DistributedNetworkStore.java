@@ -59,13 +59,13 @@ public class DistributedNetworkStore
      *
      * All you need to do is uncomment the following two lines.
      */
-    //@Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    //protected StorageService storageService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected StorageService storageService;
 
     /*
      * TODO Lab 5: Replace the ConcurrentMap with ConsistentMap
      */
-    private ConcurrentMap<String, Set<HostId>> networks;
+    private ConsistentMap<String, Set<HostId>> networks;
 
     /*
      * TODO Lab 6: Create a listener instance of InternalListener
@@ -81,7 +81,10 @@ public class DistributedNetworkStore
          * You should use storageService.consistentMapBuilder(), and the
          * serializer: Serializer.using(KryoNamespaces.API)
          */
-        networks = Maps.newConcurrentMap();
+        networks = storageService.<String, Set<HostId>>consistentMapBuilder()
+                .withSerializer(Serializer.using(KryoNamespaces.API))
+                .withName("byon-networks")
+                .build();
 
         /*
          * TODO Lab 6: Add the listener to the networks map
@@ -123,9 +126,9 @@ public class DistributedNetworkStore
          *
          * You will also need to extract the value in the if statement.
          */
-        Set<HostId> existingHosts = checkNotNull(networks.get(network),
+        Versioned<Set<HostId>> existingHosts = checkNotNull(networks.get(network),
                                                             "Network %s does not exist", network);
-        if (existingHosts.contains(hostId)) {
+        if (existingHosts.value().contains(hostId)) {
             return false;
         }
 
@@ -143,7 +146,7 @@ public class DistributedNetworkStore
         /*
          * TODO Lab 5: Update the Set to Versioned<Set<HostId>>
          */
-        Set<HostId> hosts =
+        Versioned<Set<HostId>> hosts =
                 networks.computeIfPresent(network,
                                           (k, v) -> {
                                               Set<HostId> result = Sets.newHashSet(v);
@@ -161,7 +164,7 @@ public class DistributedNetworkStore
          * ConsistentMap returns a Versioned<V>, so you need to extract the value
          */
         return checkNotNull(networks.get(network),
-                            "Please create the network first");
+                            "Please create the network first").value();
     }
 
     /*
