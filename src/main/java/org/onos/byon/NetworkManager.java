@@ -75,20 +75,23 @@ public class NetworkManager implements NetworkService {
      *
      * All you need to do is uncomment the following two lines.
      */
-    //@Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    //protected EventDeliveryService eventDispatcher;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected EventDeliveryService eventDispatcher;
 
     /*
      * TODO Lab 6: Construct a ListenerRegistry<NetworkEvent, NetworkListener>
      *
      * This will be used to keep track of external listeners.
      */
+    private final ListenerRegistry<NetworkEvent, NetworkListener>
+            listenerRegistry = new ListenerRegistry<>();
 
     /*
      * TODO Lab 6: Instantiate a NetworkStoreDelegate
      *
      * You will first need to implement the class (at the bottom of the file).
      */
+    private final NetworkStoreDelegate delegate = new InternalStoreDelegate();
 
     protected ApplicationId appId;
 
@@ -101,6 +104,8 @@ public class NetworkManager implements NetworkService {
          * 1. Add the listener registry to the event dispatcher using eventDispatcher.addSink()
          * 2. Set the delegate in the store
          */
+        eventDispatcher.addSink(NetworkEvent.class, listenerRegistry);
+        store.setDelegate(delegate);
         log.info("Started");
     }
 
@@ -112,6 +117,8 @@ public class NetworkManager implements NetworkService {
          * 1. Remove the event class from the event dispatcher using eventDispatcher.removeSink()
          * 2. Unset the delegate from the store
          */
+        eventDispatcher.removeSink(NetworkEvent.class);
+        store.unsetDelegate(delegate);
         log.info("Stopped");
     }
 
@@ -276,10 +283,36 @@ public class NetworkManager implements NetworkService {
         return fields.length > 1 && fields[1].contains(hostId.toString());
     }
 
+    @Override
+    public void addListener(NetworkListener listener) {
+        /*
+         * TODO Lab 6: Add the listener to the listener registry
+         *
+         * Use listenerRegistry.addListener()
+         */
+        listenerRegistry.addListener(listener);
+    }
+
+    @Override
+    public void removeListener(NetworkListener listener) {
+        /*
+         * TODO Lab 6: Remove the listener from the listener registry
+         *
+         * Use listenerRegistry.removeListener()
+         */
+        listenerRegistry.removeListener(listener);
+    }
+
     /*
      * TODO Lab 6: Implement an InternalStoreDelegate class
      *
      * The class should implement the NetworkStoreDelegate interface and
      * its notify method.
      */
+    private class InternalStoreDelegate implements NetworkStoreDelegate {
+        @Override
+        public void notify(NetworkEvent event) {
+            eventDispatcher.post(event);
+        }
+    }
 }

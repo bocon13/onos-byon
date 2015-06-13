@@ -25,7 +25,7 @@ import java.util.Set;
  * Tracks networks and their hosts.
  */
 // TODO Lab 6: Extend Store<NetworkEvent, NetworkStoreDelegate>
-public interface NetworkStore {
+public interface NetworkStore extends Store<NetworkEvent, NetworkStoreDelegate> {
     /**
      * Create a named network.
      *

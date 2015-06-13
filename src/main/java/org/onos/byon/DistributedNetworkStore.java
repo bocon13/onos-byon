@@ -42,6 +42,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.onos.byon.NetworkEvent.Type.NETWORK_ADDED;
+import static org.onos.byon.NetworkEvent.Type.NETWORK_REMOVED;
+import static org.onos.byon.NetworkEvent.Type.NETWORK_UPDATED;
 
 /**
  * Network Store implementation backed by consistent map.
@@ -50,6 +53,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Service
 public class DistributedNetworkStore
         // TODO Lab 6: Extend the AbstractStore class for the store delegate
+        extends AbstractStore<NetworkEvent, NetworkStoreDelegate>
         implements NetworkStore {
 
     private static Logger log = LoggerFactory.getLogger(DistributedNetworkStore.class);
@@ -72,6 +76,7 @@ public class DistributedNetworkStore
      *
      * You will first need to implement the class (at the bottom of the file).
      */
+    private final InternalListener listener = new InternalListener();
 
     @Activate
     public void activate() {
@@ -91,6 +96,7 @@ public class DistributedNetworkStore
          *
          * Use networks.addListener()
          */
+        networks.addListener(listener);
         log.info("Started");
     }
 
@@ -101,6 +107,7 @@ public class DistributedNetworkStore
          *
          * Use networks.removeListener()
          */
+        networks.removeListener(listener);
         log.info("Stopped");
     }
 
@@ -173,5 +180,23 @@ public class DistributedNetworkStore
      * The class should implement the MapEventListener interface and
      * its event method.
      */
-
+    private class InternalListener implements MapEventListener<String, Set<HostId>> {
+        @Override
+        public void event(MapEvent<String, Set<HostId>> mapEvent) {
+            final NetworkEvent.Type type;
+            switch (mapEvent.type()) {
+                case INSERT:
+                    type = NETWORK_ADDED;
+                    break;
+                case UPDATE:
+                    type = NETWORK_UPDATED;
+                    break;
+                case REMOVE:
+                default:
+                    type = NETWORK_REMOVED;
+                    break;
+            }
+            notifyDelegate(new NetworkEvent(type, mapEvent.key()));
+        }
+    }
 }
