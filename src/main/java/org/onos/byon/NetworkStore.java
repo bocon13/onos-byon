@@ -24,8 +24,11 @@ import java.util.Set;
 /**
  * Tracks networks and their hosts.
  */
-// TODO Lab 6: Extend Store<NetworkEvent, NetworkStoreDelegate>
-public interface NetworkStore {
+
+public interface NetworkStore
+        // TODO Lab 6: Extend Store<NetworkEvent, NetworkStoreDelegate>
+        //extends Store<NetworkEvent, NetworkStoreDelegate>
+{
     /**
      * Create a named network.
      *
@@ -51,7 +54,7 @@ public interface NetworkStore {
      * Adds a host to the given network.
      *
      * @param network network name
-     * @param hostId host id
+     * @param hostId  host id
      * @return true if the host was added; false if it already exists
      */
     boolean addHost(String network, HostId hostId);
@@ -60,9 +63,10 @@ public interface NetworkStore {
      * Removes a host from the given network.
      *
      * @param network network name
-     * @param hostId host id
+     * @param hostId  host id
+     * @return true if the host was removed; false if it was already gone
      */
-    void removeHost(String network, HostId hostId);
+    boolean removeHost(String network, HostId hostId);
 
     /**
      * Returns all the hosts in a network.

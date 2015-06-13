@@ -22,10 +22,10 @@ import org.onos.byon.NetworkService;
 import org.onosproject.cli.AbstractShellCommand;
 
 /**
- * CLI to create a network.
+ * CLI to remove a network.
  */
-@Command(scope = "byon", name = "create-network", description = "Create a network")
-public class CreateNetworkCommand extends AbstractShellCommand {
+@Command(scope = "byon", name = "remove-network", description = "Remove a network")
+public class RemoveNetworkCommand extends AbstractShellCommand {
 
     @Argument(index = 0, name = "network", description = "Network name",
             required = true, multiValued = false)
@@ -34,7 +34,7 @@ public class CreateNetworkCommand extends AbstractShellCommand {
     @Override
     protected void execute() {
         NetworkService networkService = get(NetworkService.class);
-        networkService.createNetwork(network);
-        print("Created network %s", network);
+        networkService.removeNetwork(network);
+        print("Removed network %s", network);
     }
 }

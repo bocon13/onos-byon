@@ -16,6 +16,7 @@
 
 package org.onos.byon;
 
+import org.onosproject.event.ListenerService;
 import org.onosproject.net.HostId;
 
 import java.util.Set;
@@ -25,7 +26,7 @@ import java.util.Set;
  * which provide mesh connectivity between hosts of a
  * given network.
  */
-public interface NetworkService {
+public interface NetworkService extends ListenerService<NetworkEvent, NetworkListener> {
 
     /**
      * Create a named network.
@@ -39,7 +40,7 @@ public interface NetworkService {
      *
      * @param network network name
      */
-    void deleteNetwork(String network);
+    void removeNetwork(String network);
 
     /**
      * Returns a set of network names.
@@ -52,7 +53,7 @@ public interface NetworkService {
      * Adds a host to the given network.
      *
      * @param network network name
-     * @param hostId host id
+     * @param hostId  host id
      */
     void addHost(String network, HostId hostId);
 
@@ -60,7 +61,7 @@ public interface NetworkService {
      * Removes a host from the given network.
      *
      * @param network network name
-     * @param hostId host id
+     * @param hostId  host id
      */
     void removeHost(String network, HostId hostId);
 
@@ -72,17 +73,4 @@ public interface NetworkService {
      */
     Set<HostId> getHosts(String network);
 
-    /**
-     * Register a listener for network events.
-     *
-     * @param listener listener
-     */
-    //TODO Lab 6: Add addListener to the interface (uncomment the line)
-
-    /**
-     * Unregister a listener for network events.
-     *
-     * @param listener listener
-     */
-    //TODO Lab 6: Add removeListener to the interface (uncomment the line)
 }

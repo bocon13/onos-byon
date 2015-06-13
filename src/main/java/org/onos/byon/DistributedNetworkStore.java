@@ -22,24 +22,13 @@ import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.HostId;
-import org.onosproject.store.AbstractStore;
-import org.onosproject.store.serializers.KryoNamespaces;
-import org.onosproject.store.service.ConsistentMap;
-import org.onosproject.store.service.MapEvent;
-import org.onosproject.store.service.MapEventListener;
-import org.onosproject.store.service.Serializer;
-import org.onosproject.store.service.StorageService;
-import org.onosproject.store.service.Versioned;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -50,6 +39,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Service
 public class DistributedNetworkStore
         // TODO Lab 6: Extend the AbstractStore class for the store delegate
+        //extends AbstractStore<NetworkEvent, NetworkStoreDelegate>
         implements NetworkStore {
 
     private static Logger log = LoggerFactory.getLogger(DistributedNetworkStore.class);
@@ -65,13 +55,14 @@ public class DistributedNetworkStore
     /*
      * TODO Lab 5: Replace the ConcurrentMap with ConsistentMap
      */
-    private ConcurrentMap<String, Set<HostId>> networks;
+    private Map<String, Set<HostId>> networks;
 
     /*
      * TODO Lab 6: Create a listener instance of InternalListener
      *
      * You will first need to implement the class (at the bottom of the file).
      */
+    //private final InternalListener ...
 
     @Activate
     public void activate() {
@@ -86,7 +77,7 @@ public class DistributedNetworkStore
         /*
          * TODO Lab 6: Add the listener to the networks map
          *
-         * Use networks.addListener()
+         * Use nets.addListener()
          */
         log.info("Started");
     }
@@ -96,14 +87,14 @@ public class DistributedNetworkStore
         /*
          * TODO Lab 6: Remove the listener from the networks map
          *
-         * Use networks.removeListener()
+         * Use nets.removeListener()
          */
         log.info("Stopped");
     }
 
     @Override
     public void putNetwork(String network) {
-        networks.putIfAbsent(network, Sets.<HostId>newHashSet());
+        networks.putIfAbsent(network, Sets.newHashSet());
     }
 
     @Override
@@ -118,17 +109,9 @@ public class DistributedNetworkStore
 
     @Override
     public boolean addHost(String network, HostId hostId) {
-        /*
-         * TODO Lab 5: Update the Set to Versioned<Set<HostId>>
-         *
-         * You will also need to extract the value in the if statement.
-         */
-        Set<HostId> existingHosts = checkNotNull(networks.get(network),
-                                                            "Network %s does not exist", network);
-        if (existingHosts.contains(hostId)) {
+        if (getHosts(network).contains(hostId)) {
             return false;
         }
-
         networks.computeIfPresent(network,
                                   (k, v) -> {
                                       Set<HostId> result = Sets.newHashSet(v);
@@ -139,29 +122,22 @@ public class DistributedNetworkStore
     }
 
     @Override
-    public void removeHost(String network, HostId hostId) {
-        /*
-         * TODO Lab 5: Update the Set to Versioned<Set<HostId>>
-         */
-        Set<HostId> hosts =
-                networks.computeIfPresent(network,
-                                          (k, v) -> {
-                                              Set<HostId> result = Sets.newHashSet(v);
-                                              result.remove(hostId);
-                                              return result;
-                                          });
-        checkNotNull(hosts, "Network %s does not exist", network);
+    public boolean removeHost(String network, HostId hostId) {
+        if (!getHosts(network).contains(hostId)) {
+            return false;
+        }
+        networks.computeIfPresent(network,
+                                  (k, v) -> {
+                                      Set<HostId> result = Sets.newHashSet(v);
+                                      result.remove(hostId);
+                                      return result;
+                                  });
+        return true;
     }
 
     @Override
     public Set<HostId> getHosts(String network) {
-        /*
-         * TODO Lab 5: Update return value
-         *
-         * ConsistentMap returns a Versioned<V>, so you need to extract the value
-         */
-        return checkNotNull(networks.get(network),
-                            "Please create the network first");
+        return checkNotNull(networks.get(network), "Network %s does not exist", network);
     }
 
     /*
@@ -170,5 +146,6 @@ public class DistributedNetworkStore
      * The class should implement the MapEventListener interface and
      * its event method.
      */
+    //private class InternalListener ...
 
 }

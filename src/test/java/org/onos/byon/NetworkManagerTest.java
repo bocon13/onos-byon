@@ -80,12 +80,12 @@ public class NetworkManagerTest {
                 .two(HOST_2)
                 .build();
 
-        assertTrue(manager.matches(NETWORK, Optional.of(HOST_1), intent));
-        assertTrue(manager.matches(NETWORK, Optional.of(HOST_2), intent));
-        assertTrue(manager.matches(NETWORK, Optional.empty(), intent));
+        assertTrue(manager.matches(NETWORK, HOST_1, intent));
+        assertTrue(manager.matches(NETWORK, HOST_2, intent));
+        assertTrue(manager.matches(NETWORK, null, intent));
 
-        assertFalse(manager.matches(NETWORK, Optional.of(HOST_3), intent));
-        assertFalse(manager.matches(NETWORK_2, Optional.of(HOST_1), intent));
-        assertFalse(manager.matches(NETWORK_2, Optional.of(HOST_3), intent));
+        assertFalse(manager.matches(NETWORK, HOST_3, intent));
+        assertFalse(manager.matches(NETWORK_2, HOST_1, intent));
+        assertFalse(manager.matches(NETWORK_2, HOST_3, intent));
     }
 }

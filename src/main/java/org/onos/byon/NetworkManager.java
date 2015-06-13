@@ -25,8 +25,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
-import org.onosproject.event.EventDeliveryService;
-import org.onosproject.event.ListenerRegistry;
+import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.net.HostId;
 import org.onosproject.net.intent.HostToHostIntent;
 import org.onosproject.net.intent.Intent;
@@ -36,7 +35,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -48,12 +46,15 @@ import static java.lang.String.format;
  */
 @Component(immediate = true)
 @Service
-public class NetworkManager implements NetworkService {
+
+public class NetworkManager
+        extends AbstractListenerManager<NetworkEvent, NetworkListener>
+        implements NetworkService {
 
     private static Logger log = LoggerFactory.getLogger(NetworkManager.class);
 
-    public static final String HOST_FORMAT = "%s~%s";
-    public static final String KEY_FORMAT = "%s,%s";
+    private static final String HOST_FORMAT = "%s~%s";
+    private static final String KEY_FORMAT = "%s,%s";
 
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected NetworkStore store;
@@ -61,47 +62,37 @@ public class NetworkManager implements NetworkService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected CoreService coreService;
 
-    /*
-     * TODO Lab 3: Get a reference to the intent service
-     *
-     * All you need to do is uncomment the following two lines.
-     */
-    //@Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    //protected IntentService intentService;
-
-
-    /*
-     * TODO Lab 6: Get a reference to the event delivery service
-     *
-     * All you need to do is uncomment the following two lines.
-     */
-    //@Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    //protected EventDeliveryService eventDispatcher;
-
-    /*
-     * TODO Lab 6: Construct a ListenerRegistry<NetworkEvent, NetworkListener>
-     *
-     * This will be used to keep track of external listeners.
-     */
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected IntentService intentService;
 
     /*
      * TODO Lab 6: Instantiate a NetworkStoreDelegate
      *
-     * You will first need to implement the class (at the bottom of the file).
+     * Using reference to the inherited 'post' method is sufficient.
      */
+    //private final NetworkStoreDelegate delegate = this::post;
 
     protected ApplicationId appId;
 
     @Activate
     protected void activate() {
-        appId = coreService.registerApplication("org.onos.byon");
+        appId = coreService.registerApplication("org.onos.byon", this::removeAllIntents);
+        removeAllIntents();
+
         /*
          * TODO Lab 6: Remove delegate and event sink
          *
          * 1. Add the listener registry to the event dispatcher using eventDispatcher.addSink()
          * 2. Set the delegate in the store
          */
+
         log.info("Started");
+    }
+
+    // Removes all intents as part of application being deactivated.
+    private void removeAllIntents() {
+        Iterables.filter(intentService.getIntents(), i -> Objects.equals(i.appId(), appId))
+                .forEach(intentService::withdraw);
     }
 
     @Deactivate
@@ -122,17 +113,20 @@ public class NetworkManager implements NetworkService {
         /*
          * TODO Lab 2: Add the network to the store
          */
+
     }
 
     @Override
-    public void deleteNetwork(String network) {
+    public void removeNetwork(String network) {
         checkNotNull(network, "Network name cannot be null");
         /*
          * TODO Lab 2: Remove the network from the store
          */
+
         /*
          * TODO Lab 4: Remove the intents when the network is deleted
          */
+
     }
 
     @Override
@@ -165,6 +159,7 @@ public class NetworkManager implements NetworkService {
          *
          * TODO Lab 4: Remove the host's intents from the network
          */
+
     }
 
     @Override
@@ -179,8 +174,8 @@ public class NetworkManager implements NetworkService {
     /**
      * Adds an intent between a new host and all others in the network.
      *
-     * @param network network name
-     * @param src the new host
+     * @param network    network name
+     * @param src        the new host
      * @param hostsInNet all hosts in the network
      */
     private void addIntents(String network, HostId src, Set<HostId> hostsInNet) {
@@ -192,15 +187,16 @@ public class NetworkManager implements NetworkService {
          * 2. Generate the intent key using generateKey(), so they can be removed later
          * 3. Submit the intents using intentService.submit()
          */
+
     }
 
     /**
      * Removes intents that involve the specified host in a network.
      *
      * @param network network name
-     * @param hostId host to remove; all hosts if empty
+     * @param hostId  host to remove; all hosts if null
      */
-    private void removeIntents(String network, Optional<HostId> hostId) {
+    private void removeIntents(String network, HostId hostId) {
         /*
          * TODO Lab 4: Implement remove intents
          *
@@ -208,14 +204,15 @@ public class NetworkManager implements NetworkService {
          * 2. Using matches() to filter intents for this network and hostId
          * 3. Withdrawn intentService.withdraw()
          */
+
     }
 
     /**
      * Returns ordered intent key from network and two hosts.
      *
      * @param network network name
-     * @param one host one
-     * @param two host two
+     * @param one     host one
+     * @param two     host two
      * @return canonical intent string key
      */
     protected Key generateKey(String network, HostId one, HostId two) {
@@ -228,11 +225,11 @@ public class NetworkManager implements NetworkService {
      * Matches an intent to a network and optional host.
      *
      * @param network network name
-     * @param id optional host id, wildcard if missing
-     * @param intent intent to match
+     * @param hostId  optional host id, wildcard if null
+     * @param intent  intent to match
      * @return true if intent matches, false otherwise
      */
-    protected boolean matches(String network, Optional<HostId> id, Intent intent) {
+    protected boolean matches(String network, HostId hostId, Intent intent) {
         if (!Objects.equals(appId, intent.appId())) {
             // different app ids
             return false;
@@ -244,21 +241,14 @@ public class NetworkManager implements NetworkService {
             return false;
         }
 
-        if (!id.isPresent()) {
+        if (hostId == null) {
             // no host id specified; wildcard match
             return true;
         }
 
-        HostId hostId = id.get();
         String[] fields = key.split(",");
         // return result of id match in host portion of key
         return fields.length > 1 && fields[1].contains(hostId.toString());
     }
 
-    /*
-     * TODO Lab 6: Implement an InternalStoreDelegate class
-     *
-     * The class should implement the NetworkStoreDelegate interface and
-     * its notify method.
-     */
 }
