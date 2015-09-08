@@ -25,6 +25,7 @@ import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.core.ApplicationId;
 import org.onosproject.core.CoreService;
+import org.onosproject.event.AbstractListenerManager;
 import org.onosproject.event.EventDeliveryService;
 import org.onosproject.event.ListenerRegistry;
 import org.onosproject.net.HostId;
@@ -48,7 +49,7 @@ import static java.lang.String.format;
  */
 @Component(immediate = true)
 @Service
-public class NetworkManager implements NetworkService {
+public class NetworkManager extends AbstractListenerManager<NetworkEvent, NetworkListener> implements NetworkService {
 
     private static Logger log = LoggerFactory.getLogger(NetworkManager.class);
 
@@ -69,22 +70,6 @@ public class NetworkManager implements NetworkService {
     @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
     protected IntentService intentService;
 
-
-    /*
-     * TODO Lab 6: Get a reference to the event delivery service
-     *
-     * All you need to do is uncomment the following two lines.
-     */
-    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    protected EventDeliveryService eventDispatcher;
-
-    /*
-     * TODO Lab 6: Construct a ListenerRegistry<NetworkEvent, NetworkListener>
-     *
-     * This will be used to keep track of external listeners.
-     */
-    private final ListenerRegistry<NetworkEvent, NetworkListener>
-            listenerRegistry = new ListenerRegistry<>();
 
     /*
      * TODO Lab 6: Instantiate a NetworkStoreDelegate
@@ -283,25 +268,6 @@ public class NetworkManager implements NetworkService {
         return fields.length > 1 && fields[1].contains(hostId.toString());
     }
 
-    @Override
-    public void addListener(NetworkListener listener) {
-        /*
-         * TODO Lab 6: Add the listener to the listener registry
-         *
-         * Use listenerRegistry.addListener()
-         */
-        listenerRegistry.addListener(listener);
-    }
-
-    @Override
-    public void removeListener(NetworkListener listener) {
-        /*
-         * TODO Lab 6: Remove the listener from the listener registry
-         *
-         * Use listenerRegistry.removeListener()
-         */
-        listenerRegistry.removeListener(listener);
-    }
 
     /*
      * TODO Lab 6: Implement an InternalStoreDelegate class
@@ -312,7 +278,7 @@ public class NetworkManager implements NetworkService {
     private class InternalStoreDelegate implements NetworkStoreDelegate {
         @Override
         public void notify(NetworkEvent event) {
-            eventDispatcher.post(event);
+            post(event);
         }
     }
 }
