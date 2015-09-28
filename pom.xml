@@ -28,7 +28,7 @@
     <url>http://onosproject.org</url>
 
     <properties>
-        <onos.version>1.3.0-SNAPSHOT</onos.version>
+        <onos.version>1.3.1-SNAPSHOT</onos.version>
         <onos.app.name>org.onos.byon</onos.app.name>
         <onos.app.origin>Apps-R-Us LLC, Inc. GmbH</onos.app.origin>
     </properties>
