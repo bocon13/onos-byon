@@ -113,7 +113,7 @@ public class NetworkManager
         /*
          * TODO Lab 2: Add the network to the store
          */
-
+        store.putNetwork(network);
     }
 
     @Override
@@ -122,7 +122,7 @@ public class NetworkManager
         /*
          * TODO Lab 2: Remove the network from the store
          */
-
+        store.removeNetwork(network);
         /*
          * TODO Lab 4: Remove the intents when the network is deleted
          */
@@ -134,7 +134,7 @@ public class NetworkManager
         /*
          * TODO Lab 2: Get the networks from the store and return them
          */
-        return ImmutableSet.of("my-network"); // TODO remove this line before starting lab 2
+        return store.getNetworks();
     }
 
     @Override
@@ -148,6 +148,7 @@ public class NetworkManager
          *     You only need to add the intents if this is the first time that
          *     the host is added. (Check the store's return value)
          */
+        boolean hostWasAdded = store.addHost(network, hostId);
 
     }
 
@@ -160,6 +161,7 @@ public class NetworkManager
          *
          * TODO Lab 4: Remove the host's intents from the network
          */
+        boolean hostWasRemoved = store.removeHost(network, hostId);
 
     }
 
@@ -169,7 +171,7 @@ public class NetworkManager
         /*
          * TODO Lab 2: Retrieve the hosts from the store and return them
          */
-        return ImmutableSet.of(); // TODO remove this line before starting lab 2
+        return store.getHosts(network);
     }
 
     /**
