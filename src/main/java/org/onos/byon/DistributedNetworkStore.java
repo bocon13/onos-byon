@@ -49,7 +49,7 @@ import static org.onos.byon.NetworkEvent.Type.*;
 @Service
 public class DistributedNetworkStore
         // TODO Lab 6: Extend the AbstractStore class for the store delegate
-        //extends AbstractStore<NetworkEvent, NetworkStoreDelegate>
+        extends AbstractStore<NetworkEvent, NetworkStoreDelegate>
         implements NetworkStore {
 
     private static Logger log = LoggerFactory.getLogger(DistributedNetworkStore.class);
@@ -74,7 +74,7 @@ public class DistributedNetworkStore
      *
      * You will first need to implement the class (at the bottom of the file).
      */
-    //private final InternalListener ...
+    private final InternalListener listener = new InternalListener();
 
     @Activate
     public void activate() {
@@ -95,6 +95,7 @@ public class DistributedNetworkStore
          *
          * Use nets.addListener()
          */
+        nets.addListener(listener);
         log.info("Started");
     }
 
@@ -105,6 +106,7 @@ public class DistributedNetworkStore
          *
          * Use nets.removeListener()
          */
+        nets.removeListener(listener);
         log.info("Stopped");
     }
 
@@ -162,6 +164,23 @@ public class DistributedNetworkStore
      * The class should implement the MapEventListener interface and
      * its event method.
      */
-    //private class InternalListener ...
-
+    private class InternalListener implements MapEventListener<String, Set<HostId>> {
+        @Override
+        public void event(MapEvent<String, Set<HostId>> mapEvent) {
+            final NetworkEvent.Type type;
+            switch (mapEvent.type()) {
+                case INSERT:
+                    type = NETWORK_ADDED;
+                    break;
+                case UPDATE:
+                    type = NETWORK_UPDATED;
+                    break;
+                case REMOVE:
+                default:
+                    type = NETWORK_REMOVED;
+                    break;
+            }
+            notifyDelegate(new NetworkEvent(type, mapEvent.key()));
+        }
+    }
 }

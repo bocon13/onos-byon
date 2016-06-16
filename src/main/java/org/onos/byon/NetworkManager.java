@@ -69,7 +69,7 @@ public class NetworkManager
      *
      * Using reference to the inherited 'post' method is sufficient.
      */
-    //private final NetworkStoreDelegate delegate = this::post;
+    private final NetworkStoreDelegate delegate = this::post;
 
     protected ApplicationId appId;
 
@@ -84,7 +84,8 @@ public class NetworkManager
          * 1. Add the listener registry to the event dispatcher using eventDispatcher.addSink()
          * 2. Set the delegate in the store
          */
-
+        eventDispatcher.addSink(NetworkEvent.class, listenerRegistry);
+        store.setDelegate(delegate);
         log.info("Started");
     }
 
@@ -102,7 +103,8 @@ public class NetworkManager
          * 1. Remove the event class from the event dispatcher using eventDispatcher.removeSink()
          * 2. Unset the delegate from the store
          */
-
+        eventDispatcher.removeSink(NetworkEvent.class);
+        store.unsetDelegate(delegate);
         log.info("Stopped");
     }
 

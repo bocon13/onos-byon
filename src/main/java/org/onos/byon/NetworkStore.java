@@ -26,7 +26,7 @@ import java.util.Set;
  */
 public interface NetworkStore
         // TODO Lab 6: Extend Store<NetworkEvent, NetworkStoreDelegate>
-        //extends Store<NetworkEvent, NetworkStoreDelegate>
+        extends Store<NetworkEvent, NetworkStoreDelegate>
 {
     /**
      * Create a named network.
