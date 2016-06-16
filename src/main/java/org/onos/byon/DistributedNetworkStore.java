@@ -22,8 +22,14 @@ import com.google.common.collect.Sets;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.Service;
 import org.onosproject.net.HostId;
+import org.onosproject.store.serializers.KryoNamespaces;
+import org.onosproject.store.service.ConsistentMap;
+import org.onosproject.store.service.Serializer;
+import org.onosproject.store.service.StorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,13 +55,15 @@ public class DistributedNetworkStore
      *
      * All you need to do is uncomment the following two lines.
      */
-    //@Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
-    //protected StorageService storageService;
+    @Reference(cardinality = ReferenceCardinality.MANDATORY_UNARY)
+    protected StorageService storageService;
 
     /*
      * TODO Lab 5: Replace the ConcurrentMap with ConsistentMap
      */
     private Map<String, Set<HostId>> networks;
+
+    private ConsistentMap<String, Set<HostId>> nets;
 
     /*
      * TODO Lab 6: Create a listener instance of InternalListener
@@ -72,7 +80,11 @@ public class DistributedNetworkStore
          * You should use storageService.consistentMapBuilder(), and the
          * serializer: Serializer.using(KryoNamespaces.API)
          */
-        networks = Maps.newConcurrentMap();
+        nets = storageService.<String, Set<HostId>>consistentMapBuilder()
+                .withSerializer(Serializer.using(KryoNamespaces.API))
+                .withName("byon-networks")
+                .build();
+        networks = nets.asJavaMap();
 
         /*
          * TODO Lab 6: Add the listener to the networks map
